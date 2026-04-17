@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamentos - Dashboard</title>
+    <style>
+        :root {
+            --bg-main: #111214;
+            --bg-sidebar: #111214;
+            --bg-card: #232527;
+            --bg-card-hover: #2a2c2e;
+            --bg-button: #ffffff;
+            --bg-button-blue: #0066ff;
+            --bg-button-blue-hover: #005ce6;
+            --text-main: #ffffff;
+            --text-muted: #bdbebe;
+            --border-color: #393b3d;
+            --blue-chart: #00a2ff;
+            --purple-chart: #a872ff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Gotham", "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow-x: hidden; }
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 24px 0; flex-shrink: 0; }
+        .sidebar-section { margin-bottom: 24px; }
+        .sidebar-title { font-size: 16px; font-weight: 700; padding: 0 24px; margin-bottom: 12px; letter-spacing: 0.5px; }
+        .nav-item { padding: 14px 24px; color: var(--text-muted); text-decoration: none; display: block; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease, padding-left 0.2s ease; }
+        .nav-item:hover { color: var(--text-main); background-color: rgba(255, 255, 255, 0.03); padding-left: 28px; }
+        .nav-item.active { background-color: rgba(255, 255, 255, 0.08); color: var(--text-main); border-left: 4px solid var(--text-main); padding-left: 20px; }
+        .main-content { flex: 1; padding: 40px 50px; overflow-y: auto; }
+        .header-top { display: flex; align-items: center; margin-bottom: 24px; gap: 16px; }
+        .header-top h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; }
+        .description { color: var(--text-main); font-size: 16px; line-height: 1.6; margin-bottom: 40px; max-width: 950px; opacity: 0.9; }
+        .cards-container { display: flex; gap: 24px; margin-bottom: 40px; }
+        .card { background-color: var(--bg-card); border-radius: 10px; padding: 24px; width: 320px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease; border: 1px solid transparent; }
+        .card:hover { transform: translateY(-4px); background-color: var(--bg-card-hover); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); border-color: rgba(255, 255, 255, 0.05); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .card-header h3 { font-size: 18px; font-weight: 700; }
+        .card-header a { color: var(--blue-chart); font-size: 14px; text-decoration: none; font-weight: 600; transition: opacity 0.2s; }
+        .card-header a:hover { opacity: 0.8; text-decoration: underline; }
+        .card p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
+        .robux-value { font-size: 28px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .btn-blue { background-color: var(--bg-button-blue); color: white; border: none; border-radius: 6px; padding: 10px 20px; font-size: 15px; font-weight: 700; cursor: pointer; align-self: flex-start; transition: all 0.2s ease; }
+        .btn-blue:hover { background-color: var(--bg-button-blue-hover); transform: scale(1.03); box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3); }
+        .btn-blue:active { transform: scale(0.98); }
+        .tabs { display: flex; gap: 12px; margin-bottom: 40px; }
+        .tab { background-color: transparent; color: var(--text-muted); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 24px; font-size: 15px; cursor: pointer; font-weight: 700; transition: all 0.2s ease; }
+        .tab:hover:not(.active) { background-color: rgba(255, 255, 255, 0.05); color: white; border-color: #555; }
+        .tab.active { background-color: var(--text-main); color: black; border-color: var(--text-main); }
+        .divisions-container { display: flex; gap: 80px; }
+        .divisions-list { flex: 1; max-width: 450px; }
+        .divisions-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 16px; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+        .list-item { display: flex; align-items: center; padding: 16px 12px; position: relative; border-radius: 8px; transition: background-color 0.2s ease; cursor: default; }
+        .list-item:hover { background-color: rgba(255, 255, 255, 0.03); }
+        .list-item::before { content: ''; position: absolute; left: -12px; top: 16px; bottom: 16px; width: 4px; border-radius: 4px; }
+        .item-blue::before { background-color: var(--blue-chart); }
+        .avatar { width: 48px; height: 48px; border-radius: 50%; background-color: #333; margin-right: 16px; overflow: hidden; border: 1px solid var(--border-color); }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-info { flex: 1; }
+        .user-name { font-size: 16px; font-weight: 700; }
+        .user-id { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+        .percentage { font-size: 16px; font-weight: 800; }
+        .chart-section { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; }
+        .donut-chart { width: 280px; height: 280px; border-radius: 50%; background: conic-gradient(var(--blue-chart) 0% 94%, var(--purple-chart) 94% 100%); display: flex; justify-content: center; align-items: center; position: relative; transition: transform 0.3s ease; }
+        .donut-chart:hover { transform: scale(1.02); }
+        .inner-circle { width: 210px; height: 210px; background-color: var(--bg-main); border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .inner-circle span { font-size: 14px; color: var(--text-main); font-weight: 700; }
+        .inner-circle strong { font-size: 28px; margin-top: 8px; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-container { background-color: var(--bg-card); width: 520px; border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); transform: translateY(-20px); transition: transform 0.2s ease; }
+        .modal-overlay.active .modal-container { transform: translateY(0); }
+        .modal-title { font-size: 24px; font-weight: 800; margin-bottom: 20px; }
+        .search-box { display: flex; align-items: center; background-color: #111214; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; margin-bottom: 60px; transition: margin-bottom 0.3s ease; }
+        .search-box svg { fill: none; stroke: var(--text-muted); width: 18px; height: 18px; }
+        .search-box input { flex: 1; background: transparent; border: none; color: white; font-size: 15px; outline: none; margin: 0 12px; }
+        .search-box input::placeholder { color: #888a8c; }
+        .search-box .arrow-down { fill: var(--text-muted); stroke: none; width: 12px; height: 12px; cursor: pointer; }
+        
+        .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+        .modal-btn { flex: 1; padding: 12px 0; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background-color 0.2s ease, opacity 0.2s; }
+        
+        /* Estilos dos Botões do Modal */
+        .btn-disabled { background-color: #1b1d1f; color: #75777a; cursor: not-allowed; }
+        .btn-blue-active { background-color: #2b5ef6; color: white; } 
+        .btn-blue-active:hover { background-color: var(--bg-button-blue-hover); }
+        .btn-submit { background-color: #393b3d; color: white; }
+        .btn-submit:hover { background-color: #4a4d50; }
+        
+        #dynamic-content { margin-bottom: 24px; }
+        .user-payment-row { display: flex; justify-content: space-between; align-items: center; }
+        .user-info-modal { display: flex; align-items: center; gap: 12px; }
+        .user-info-modal img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color); }
+        .user-name-modal { font-weight: 700; font-size: 16px; }
+        .user-actions-modal { display: flex; align-items: center; gap: 12px; }
+        
+        .robux-input-container { display: flex; align-items: center; gap: 8px; background-color: #111214; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 16px; width: 140px; transition: border-color 0.2s; }
+        
+        /* A classe error que deixa a borda vermelha */
+        .robux-input-container.error { border-color: #ff4d4d; }
+        
+        .robux-input-container input[type=number] { background: transparent; border: none; color: white; font-size: 15px; outline: none; font-weight: 700; width: 100%; -moz-appearance: textfield; }
+        .robux-input-container input[type=number]::-webkit-outer-spin-button, .robux-input-container input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .robux-input-container input[type=number]::placeholder { color: var(--text-muted); opacity: 0.5; }
+        .robux-input-container span { font-size: 15px; font-weight: 700; color: var(--text-muted); }
+        
+        .remove-icon { width: 20px; height: 20px; stroke: var(--text-muted); cursor: pointer; transition: stroke 0.2s; }
+        .remove-icon:hover { stroke: white; }
+        .modal-divider { height: 1px; background-color: #393b3d; margin: 20px 0; width: 100%; }
+        .total-row { display: flex; justify-content: space-between; align-items: center; }
+        .total-label { font-weight: 800; font-size: 18px; }
+
+        /* =========================================
+           NOVOS ESTILOS: TELA DE REVISÃO (PASSO 2)
+           ========================================= */
+        .section-title { font-size: 18px; font-weight: 800; margin: 24px 0 12px 0; }
+        
+        .review-table { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+        .review-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border-color); }
+        .review-row:last-child { border-bottom: none; }
+        .review-row.header { font-weight: 800; font-size: 14px; background-color: #1a1c1d; }
+        .robux-display { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; }
+        .robux-display svg { width: 18px; height: 18px; }
+
+        /* =========================================
+           BANNERS DE ALERTA (SUCESSO / ERRO)
+           ========================================= */
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 15px;
+            font-weight: 600;
+            animation: slideDownFade 0.3s ease-out;
+        }
+
+        .alert-success { background-color: #0d2a1b; border: 1px solid #1a5235; color: #d4edda; }
+        .alert-error { background-color: #3a1515; border: 1px solid #5c1a1a; color: #f8d7d7; }
+        .alert-banner svg { width: 20px; height: 20px; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-title">Finanças</div>
+            <a href="#" class="nav-item">DevEx</a>
+            <a href="#" class="nav-item active">Pagamentos</a>
+            <a href="#" class="nav-item">Transações</a>
+        </div>
+        <div class="sidebar-section">
+            <a href="#" class="nav-item">Billing</a>
+            <a href="#" class="nav-item">Payments</a>
+            <a href="#" class="nav-item">Informações da conta</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="header-top">
+            <svg width="28" height="28" fill="white" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+            <h1>Pagamentos</h1>
+        </div>
+
+        <p class="description">
+            Os pagamentos em grupo permitem que você distribua os Robux ganhos com colaboradores que ajudaram você a desenvolver conteúdo na Roblox. Apenas os membros do grupo que participaram da colaboração neste conteúdo são elegíveis para pagamentos.
+        </p>
+
+        <div class="cards-container">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Fundos do grupo</h3>
+                    <a href="#">Ver detalhes</a>
+                </div>
+                <p>Robux na conta do seu grupo</p>
+                <div class="robux-amount">
+                    <span class="robux-value">
+                        <svg width="24" height="24" fill="white" viewBox="0 0 28 28"><path d="M23.402,5.573C25.009,6.501 26,8.217 26,10.073L26,17.929C26,19.786 25.009,21.501 23.402,22.429L16.597,26.358C14.99,27.286 13.009,27.286 11.402,26.358L4.597,22.429C2.99,21.501 2,19.786 2,17.929L2,10.073C2,8.217 2.99,6.501 4.597,5.573L11.402,1.645C13.009,0.717 14.99,0.717 16.597,1.645L23.402,5.573ZM12.313,3.428L5.686,7.254C4.642,7.857 4,8.97 4,10.176L4,17.827C4,19.032 4.642,20.146 5.686,20.749L12.313,24.574C13.357,25.177 14.642,25.177 15.686,24.574L22.313,20.749C23.357,20.146 24,19.032 24,17.827L24,10.176C24,8.97 23.357,7.857 22.313,7.254L15.686,3.428C14.642,2.825 13.357,2.825 12.313,3.428ZM15.385,5.566L20.614,8.584C21.471,9.079 22,9.994 22,10.985L22,17.022C22,18.012 21.471,18.927 20.614,19.422L15.385,22.441C14.528,22.936 13.471,22.936 12.614,22.441L7.385,19.422C6.528,18.927 6,18.012 6,17.022L6,10.985C6,9.994 6.528,9.079 7.385,8.584L12.614,5.566C13.471,5.071 14.528,5.071 15.385,5.566ZM11,17.003L17,17.003L17,11.003L11,11.003L11,17.003Z"/></svg>
+                        <span id="group-funds-display">18.443.702</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Enviar um pagamento único</h3>
+                </div>
+                <p>Dê Robux aos seus colaboradores</p>
+                <button class="btn-blue" id="btn-open-modal">Enviar Robux</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active">Grupo</button>
+            <button class="tab">Experiências</button>
+        </div>
+
+        <div class="divisions-container">
+            <div class="divisions-list">
+                <div class="divisions-header">
+                    <span>Divisões</span>
+                    <svg width="18" height="18" fill="white" viewBox="0 0 24 24" style="cursor: pointer;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                </div>
+
+                <div class="list-item item-blue">
+                    <div class="avatar"><img src="https://cdn.discordapp.com/attachments/1492209262485569657/1494465412350611486/c9b4d069-ee69-413e-a1bb-caf3b9495521.png?ex=69e2b4e0&is=69e16360&hm=424bbef33f9b170cc22ee9c7ab9b240bfc5c816b6af9e7e778338abf83eea2e6&" alt="avatar"></div>
+                    <div class="user-info">
+                        <div class="user-name">Clash War GGPRO</div>
+                        <div class="user-id">17350197</div>
+                    </div>
+                    <div class="percentage">100 %</div>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <div class="donut-chart">
+                    <div class="inner-circle">
+                        <span>Total de divisões</span>
+                        <strong>1</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="payment-modal">
+        <div class="modal-container">
+            <h2 class="modal-title" id="modal-main-title">Enviar um pagamento único</h2>
+            
+            <div id="modal-step-1">
+                <div class="search-box" id="modal-search-box">
+                    <svg viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    
+                    <input type="text" id="username-input" placeholder="Pesquisar por nome de usuário ou ID">
+                    
+                    <svg class="arrow-down" viewBox="0 0 24 24">
+                        <path d="M7 10l5 5 5-5z"></path>
+                    </svg>
+                </div>
+
+                <div id="alert-container"></div>
+
+                <div id="dynamic-content"></div>
+                
+                <div class="modal-actions">
+                    <button class="modal-btn btn-disabled" id="btn-continue-review" disabled>Continuar para a revisão</button>
+                    <button class="modal-btn btn-submit" id="btn-submit-csv">Enviar .csv</button>
+                </div>
+            </div>
+
+            <div id="modal-step-2" style="display: none;">
+                
+                <div class="section-title">De</div>
+                <div class="user-info-modal" style="margin-bottom: 24px;">
+                    <img src="https://cdn.discordapp.com/attachments/1492209262485569657/1494465412350611486/c9b4d069-ee69-413e-a1bb-caf3b9495521.png?ex=69e2b4e0&is=69e16360&hm=424bbef33f9b170cc22ee9c7ab9b240bfc5c816b6af9e7e778338abf83eea2e6&" alt="Group">
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                        <span class="user-name-modal">Clash War GGPRO </span>
+                        <span class="user-id" style="font-size: 13px; color: var(--text-muted);">17350197</span>
+                    </div>
+                </div>
+
+                <div class="section-title">Para</div>
+                <div class="review-table">
+                    <div class="review-row header">
+                        <span>Membro</span>
+                        <span>Quantia</span>
+                    </div>
+                    
+                    <div class="review-row">
+                        <div class="user-info-modal">
+                            <img id="review-avatar" src="" alt="Avatar">
+                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                <span class="user-name-modal" id="review-display-name">Nome</span>
+                                <span class="user-id" id="review-username" style="font-size: 13px; color: var(--text-muted);">@nick</span>
+                            </div>
+                        </div>
+                        <div class="robux-display">
+                            <svg width="18" height="18" fill="white" viewBox="0 0 28 28"><path d="M23.402,5.573C25.009,6.501 26,8.217 26,10.073L26,17.929C26,19.786 25.009,21.501 23.402,22.429L16.597,26.358C14.99,27.286 13.009,27.286 11.402,26.358L4.597,22.429C2.99,21.501 2,19.786 2,17.929L2,10.073C2,8.217 2.99,6.501 4.597,5.573L11.402,1.645C13.009,0.717 14.99,0.717 16.597,1.645L23.402,5.573ZM12.313,3.428L5.686,7.254C4.642,7.857 4,8.97 4,10.176L4,17.827C4,19.032 4.642,20.146 5.686,20.749L12.313,24.574C13.357,25.177 14.642,25.177 15.686,24.574L22.313,20.749C23.357,20.146 24,19.032 24,17.827L24,10.176C24,8.97 23.357,7.857 22.313,7.254L15.686,3.428C14.642,2.825 13.357,2.825 12.313,3.428ZM15.385,5.566L20.614,8.584C21.471,9.079 22,9.994 22,10.985L22,17.022C22,18.012 21.471,18.927 20.614,19.422L15.385,22.441C14.528,22.936 13.471,22.936 12.614,22.441L7.385,19.422C6.528,18.927 6,18.012 6,17.022L6,10.985C6,9.994 6.528,9.079 7.385,8.584L12.614,5.566C13.471,5.071 14.528,5.071 15.385,5.566ZM11,17.003L17,17.003L17,11.003L11,11.003L11,17.003Z"/></svg>
+                            <span id="review-amount">0</span>
+                        </div>
+                    </div>
+
+                    <div class="review-row" style="font-weight: 800;">
+                        <span>Total</span>
+                        <div class="robux-display">
+                            <svg width="18" height="18" fill="white" viewBox="0 0 28 28"><path d="M23.402,5.573C25.009,6.501 26,8.217 26,10.073L26,17.929C26,19.786 25.009,21.501 23.402,22.429L16.597,26.358C14.99,27.286 13.009,27.286 11.402,26.358L4.597,22.429C2.99,21.501 2,19.786 2,17.929L2,10.073C2,8.217 2.99,6.501 4.597,5.573L11.402,1.645C13.009,0.717 14.99,0.717 16.597,1.645L23.402,5.573ZM12.313,3.428L5.686,7.254C4.642,7.857 4,8.97 4,10.176L4,17.827C4,19.032 4.642,20.146 5.686,20.749L12.313,24.574C13.357,25.177 14.642,25.177 15.686,24.574L22.313,20.749C23.357,20.146 24,19.032 24,17.827L24,10.176C24,8.97 23.357,7.857 22.313,7.254L15.686,3.428C14.642,2.825 13.357,2.825 12.313,3.428ZM15.385,5.566L20.614,8.584C21.471,9.079 22,9.994 22,10.985L22,17.022C22,18.012 21.471,18.927 20.614,19.422L15.385,22.441C14.528,22.936 13.471,22.936 12.614,22.441L7.385,19.422C6.528,18.927 6,18.012 6,17.022L6,10.985C6,9.994 6.528,9.079 7.385,8.584L12.614,5.566C13.471,5.071 14.528,5.071 15.385,5.566ZM11,17.003L17,17.003L17,11.003L11,11.003L11,17.003Z"/></svg>
+                            <span id="review-total">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="modal-btn btn-blue-active" id="btn-confirm-send">Confirmar e enviar</button>
+                    <button class="modal-btn btn-submit" id="btn-back">Voltar</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const btnOpenModal = document.getElementById('btn-open-modal');
+        const modalOverlay = document.getElementById('payment-modal');
+        const searchInput = document.getElementById('username-input');
+        const dynamicContent = document.getElementById('dynamic-content');
+        const searchBoxContainer = document.getElementById('modal-search-box');
+        const alertContainer = document.getElementById('alert-container');
+        
+        // Elementos dos Passos e Títulos
+        const modalMainTitle = document.getElementById('modal-main-title');
+        const modalStep1 = document.getElementById('modal-step-1');
+        const modalStep2 = document.getElementById('modal-step-2');
+        
+        // Botões
+        const btnContinueReview = document.getElementById('btn-continue-review');
+        const btnConfirmSend = document.getElementById('btn-confirm-send');
+        const btnBack = document.getElementById('btn-back');
+        
+        const groupFundsDisplay = document.getElementById('group-funds-display');
+
+        // Variável global para guardar os dados do usuário pesquisado
+        let currentUserData = {
+            username: '',
+            displayName: '',
+            avatarUrl: 'https://via.placeholder.com/44/1b1d1f/ffffff?text=...',
+            amount: 0
+        };
+
+        const robuxSvg = `<svg width="18" height="18" fill="white" viewBox="0 0 28 28"><path d="M23.402,5.573C25.009,6.501 26,8.217 26,10.073L26,17.929C26,19.786 25.009,21.501 23.402,22.429L16.597,26.358C14.99,27.286 13.009,27.286 11.402,26.358L4.597,22.429C2.99,21.501 2,19.786 2,17.929L2,10.073C2,8.217 2.99,6.501 4.597,5.573L11.402,1.645C13.009,0.717 14.99,0.717 16.597,1.645L23.402,5.573ZM12.313,3.428L5.686,7.254C4.642,7.857 4,8.97 4,10.176L4,17.827C4,19.032 4.642,20.146 5.686,20.749L12.313,24.574C13.357,25.177 14.642,25.177 15.686,24.574L22.313,20.749C23.357,20.146 24,19.032 24,17.827L24,10.176C24,8.97 23.357,7.857 22.313,7.254L15.686,3.428C14.642,2.825 13.357,2.825 12.313,3.428ZM15.385,5.566L20.614,8.584C21.471,9.079 22,9.994 22,10.985L22,17.022C22,18.012 21.471,18.927 20.614,19.422L15.385,22.441C14.528,22.936 13.471,22.936 12.614,22.441L7.385,19.422C6.528,18.927 6,18.012 6,17.022L6,10.985C6,9.994 6.528,9.079 7.385,8.584L12.614,5.566C13.471,5.071 14.528,5.071 15.385,5.566ZM11,17.003L17,17.003L17,11.003L11,11.003L11,17.003Z"/></svg>`;
+
+        btnOpenModal.addEventListener('click', () => { modalOverlay.classList.add('active'); });
+        
+        // Fecha modal se clicar fora e reseta
+        modalOverlay.addEventListener('click', (event) => { 
+            if (event.target === modalOverlay) {
+                modalOverlay.classList.remove('active'); 
+                resetModal();
+            }
+        });
+
+        // Função que Cria e Mostra os Banners de Alerta Animados
+        function showAlert(type, message) {
+            searchBoxContainer.style.marginBottom = '20px'; // Ajusta a margem
+
+            const isSuccess = type === 'success';
+            const icon = isSuccess 
+                ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`
+                : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+            
+            alertContainer.innerHTML = `
+                <div class="alert-banner ${isSuccess ? 'alert-success' : 'alert-error'}">
+                    ${icon}
+                    <span>${message}</span>
+                </div>
+            `;
+
+            // O Alerta some sozinho depois de 5 segundos
+            setTimeout(() => { alertContainer.innerHTML = ''; }, 5000);
+        }
+
+        async function carregarAvatar(username) {
+            try {
+                const res = await fetch(`https://roblox-api-wine.vercel.app/api/user?username=${username}`);
+                const data = await res.json();
+                console.log(data); 
+
+                if(data.imageUrl) {
+                    currentUserData.avatarUrl = data.imageUrl;
+                    const avatarImg = document.getElementById("avatar");
+                    if(avatarImg) avatarImg.src = data.imageUrl;
+                }
+
+                if(data.displayName) {
+                    currentUserData.displayName = data.displayName;
+                    const displayNameSpan = document.getElementById("display-name-modal");
+                    if(displayNameSpan) displayNameSpan.textContent = data.displayName;
+                }
+
+            } catch (err) {
+                console.error("Erro ao carregar avatar da sua API:", err);
+            }
+        }
+
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const typedName = this.value.trim();
+                alertContainer.innerHTML = ''; // Limpa alertas se houver
+                
+                if (typedName !== '') {
+                    currentUserData.username = typedName;
+                    currentUserData.displayName = typedName; 
+
+                    searchBoxContainer.style.marginBottom = '20px';
+
+                    dynamicContent.innerHTML = `
+                        <div class="user-payment-row">
+                            <div class="user-info-modal">
+                                <img id="avatar" src="${currentUserData.avatarUrl}" alt="Avatar">
+                                <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <span class="user-name-modal" id="display-name-modal">${currentUserData.displayName}</span>
+                                    <span class="user-id" style="font-size: 13px; color: var(--text-muted);">@${currentUserData.username.toLowerCase()}</span>
+                                </div>
+                            </div>
+                            <div class="user-actions-modal">
+                                <div class="robux-input-container error" id="input-box-container">
+                                    ${robuxSvg}
+                                    <input type="number" id="pay-amount" value="" placeholder="0">
+                                </div>
+                                <svg class="remove-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="modal-divider"></div>
+
+                        <div class="total-row">
+                            <span class="total-label">Total</span>
+                            <div class="robux-input-container" style="border-color: var(--border-color);">
+                                ${robuxSvg}
+                                <span id="pay-total">0</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    this.value = '';
+
+                    carregarAvatar(typedName);
+
+                    const payAmountInput = document.getElementById('pay-amount');
+                    const payTotalSpan = document.getElementById('pay-total');
+                    const inputBoxContainer = document.getElementById('input-box-container');
+
+                    payAmountInput.addEventListener('input', function() {
+                        const val = this.value.trim();
+                        const parsedVal = parseInt(val) || 0;
+                        
+                        payTotalSpan.textContent = val === '' ? '0' : val;
+                        currentUserData.amount = parsedVal; 
+
+                        // CONTROLE DO BOTÃO AZUL E BORDA VERMELHA
+                        if (val === '' || parsedVal <= 0) {
+                            inputBoxContainer.classList.add('error');
+                            btnContinueReview.classList.add('btn-disabled');
+                            btnContinueReview.classList.remove('btn-blue-active');
+                            btnContinueReview.disabled = true;
+                        } else {
+                            inputBoxContainer.classList.remove('error');
+                            btnContinueReview.classList.remove('btn-disabled');
+                            btnContinueReview.classList.add('btn-blue-active');
+                            btnContinueReview.disabled = false;
+                        }
+                    });
+                }
+            }
+        });
+
+        // NAVEGAÇÃO: PASSO 1 PARA PASSO 2
+        btnContinueReview.addEventListener('click', () => {
+            modalStep1.style.display = 'none';
+            modalMainTitle.textContent = "Analisar pagamento único";
+            
+            document.getElementById('review-avatar').src = currentUserData.avatarUrl;
+            document.getElementById('review-display-name').textContent = currentUserData.displayName;
+            document.getElementById('review-username').textContent = "@" + currentUserData.username.toLowerCase();
+            document.getElementById('review-amount').textContent = currentUserData.amount;
+            document.getElementById('review-total').textContent = currentUserData.amount;
+            
+            modalStep2.style.display = 'block';
+        });
+
+        // NAVEGAÇÃO: VOLTAR
+        btnBack.addEventListener('click', () => {
+            modalStep2.style.display = 'none';
+            modalMainTitle.textContent = "Enviar um pagamento único";
+            modalStep1.style.display = 'block';
+        });
+
+        // AÇÃO FINAL: CONFIRMAR E DESCONTAR
+        btnConfirmSend.addEventListener('click', () => {
+            const valorADescontar = currentUserData.amount;
+            const fundosAtuaisTexto = groupFundsDisplay.textContent.replace(/\./g, '');
+            let fundosAtuais = parseInt(fundosAtuaisTexto) || 0;
+
+            // Primeiro, volta a visualização para o passo 1 (onde o banner vai aparecer)
+            modalStep2.style.display = 'none';
+            modalMainTitle.textContent = "Enviar um pagamento único";
+            modalStep1.style.display = 'block';
+
+            // Checa se tem grana
+            if (fundosAtuais >= valorADescontar) {
+                // Sucesso
+                fundosAtuais -= valorADescontar;
+                groupFundsDisplay.textContent = fundosAtuais.toLocaleString('pt-BR');
+                showAlert('success', 'Pagamentos enviados com sucesso.');
+                
+                // Reseta a caixinha de input pro usuário não mandar de novo sem querer
+                const payAmountInput = document.getElementById('pay-amount');
+                if(payAmountInput) {
+                    payAmountInput.value = '';
+                    payAmountInput.dispatchEvent(new Event('input')); 
+                }
+            } else {
+                // Erro
+                showAlert('error', 'Ocorreu um erro ao enviar pagamentos.');
+            }
+        });
+
+        // FUNÇÃO DE LIMPEZA GERAL
+        function resetModal() {
+            dynamicContent.innerHTML = '';
+            alertContainer.innerHTML = ''; // Some com o alerta se houver
+            searchBoxContainer.style.marginBottom = '60px';
+            modalStep2.style.display = 'none';
+            modalMainTitle.textContent = "Enviar um pagamento único";
+            modalStep1.style.display = 'block';
+            btnContinueReview.classList.add('btn-disabled');
+            btnContinueReview.classList.remove('btn-blue-active');
+            btnContinueReview.disabled = true;
+            
+            currentUserData = { username: '', displayName: '', avatarUrl: 'https://via.placeholder.com/44/1b1d1f/ffffff?text=...', amount: 0 };
+        }
+
+    </script>
+</body>
+</html>
